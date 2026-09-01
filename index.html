@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>24/7 AI Trading Bot Matrix</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            darkbg: '#090d16',
+            darkcard: '#111827'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-darkbg text-slate-100 font-sans min-h-screen">
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Top Nav Header -->
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-slate-800 gap-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          ⚡ 24/7 AI Trading Bot Matrix
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-400">Multi-strategy autonomous paper trading on Binance Testnet</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-xs">
+          <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-medium text-emerald-400">Syncing (10s)</span>
+        </div>
+        <button onclick="fetchAllData()" class="px-3 py-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow">
+          Refresh Now
+        </button>
+      </div>
+    </header>
+
+    <!-- GitHub Connection Settings Bar -->
+    <section class="mt-6 p-4 rounded-xl bg-darkcard border border-slate-800 flex flex-col md:flex-row gap-4 items-center justify-between">
+      <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto flex-1">
+        <input id="gh-owner" type="text" placeholder="GitHub Username / Org" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full sm:w-1/3">
+        <input id="gh-repo" type="text" placeholder="Repository Name" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full sm:w-1/3">
+        <input id="gh-branch" type="text" placeholder="Branch (default: main)" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none w-full sm:w-1/4">
+      </div>
+      <button onclick="saveConfigAndReload()" class="w-full md:w-auto px-4 py-2 text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium rounded-lg">
+        Connect GitHub Data
+      </button>
+    </section>
+
+    <!-- Stats Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+      <div class="p-5 rounded-2xl bg-darkcard border border-slate-800 shadow-md">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Net PnL</span>
+        <div id="stat-pnl" class="text-2xl font-bold text-slate-200 mt-1">$0.00 USDT</div>
+      </div>
+      <div class="p-5 rounded-2xl bg-darkcard border border-slate-800 shadow-md">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Win Rate</span>
+        <div id="stat-winrate" class="text-2xl font-bold text-slate-200 mt-1">0.0%</div>
+      </div>
+      <div class="p-5 rounded-2xl bg-darkcard border border-slate-800 shadow-md">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Trades</span>
+        <div id="stat-trades" class="text-2xl font-bold text-slate-200 mt-1">0 <span class="text-xs font-normal text-slate-400">(0W / 0L)</span></div>
+      </div>
+      <div class="p-5 rounded-2xl bg-darkcard border border-slate-800 shadow-md">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Last Engine Run</span>
+        <div id="stat-lastrun" class="text-sm font-medium text-slate-300 mt-2 truncate">Never</div>
+      </div>
+    </div>
+
+    <!-- Active Open Signals Table -->
+    <div class="mt-8 bg-darkcard border border-slate-800 rounded-2xl p-5 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-white">Active Positions & Signals</h2>
+        <span id="open-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-900/50 text-indigo-400 border border-indigo-700/50">0 Open</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+              <th class="pb-3 px-3">Bot Name</th>
+              <th class="pb-3 px-3">Symbol</th>
+              <th class="pb-3 px-3">Side</th>
+              <th class="pb-3 px-3">Entry Price</th>
+              <th class="pb-3 px-3">Take Profit</th>
+              <th class="pb-3 px-3">Stop Loss</th>
+              <th class="pb-3 px-3">Size</th>
+              <th class="pb-3 px-3">Entry Time</th>
+            </tr>
+          </thead>
+          <tbody id="open-signals-tbody" class="divide-y divide-slate-800 text-slate-300">
+            <tr>
+              <td colspan="8" class="text-center py-6 text-slate-500">Loading open trades...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Closed Trades History Table -->
+    <div class="mt-8 bg-darkcard border border-slate-800 rounded-2xl p-5 shadow-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-white">Closed Trade History</h2>
+        <span id="closed-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-400">0 Closed</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+              <th class="pb-3 px-3">Bot</th>
+              <th class="pb-3 px-3">Symbol</th>
+              <th class="pb-3 px-3">Side</th>
+              <th class="pb-3 px-3">Entry</th>
+              <th class="pb-3 px-3">Exit</th>
+              <th class="pb-3 px-3">PnL (%)</th>
+              <th class="pb-3 px-3">PnL ($)</th>
+              <th class="pb-3 px-3">Reason</th>
+              <th class="pb-3 px-3">Exit Time</th>
+            </tr>
+          </thead>
+          <tbody id="closed-signals-tbody" class="divide-y divide-slate-800 text-slate-300">
+            <tr>
+              <td colspan="9" class="text-center py-6 text-slate-500">Loading closed history...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const storedOwner = localStorage.getItem('gh_owner') || 'YOUR_GITHUB_USERNAME';
+    const storedRepo = localStorage.getItem('gh_repo') || 'YOUR_REPO_NAME';
+    const storedBranch = localStorage.getItem('gh_branch') || 'main';
+
+    document.getElementById('gh-owner').value = storedOwner;
+    document.getElementById('gh-repo').value = storedRepo;
+    document.getElementById('gh-branch').value = storedBranch;
+
+    function saveConfigAndReload() {
+      localStorage.setItem('gh_owner', document.getElementById('gh-owner').value.trim());
+      localStorage.setItem('gh_repo', document.getElementById('gh-repo').value.trim());
+      localStorage.setItem('gh_branch', document.getElementById('gh-branch').value.trim() || 'main');
+      fetchAllData();
+    }
+
+    function getRawUrl(filePath) {
+      const owner = localStorage.getItem('gh_owner') || 'YOUR_GITHUB_USERNAME';
+      const repo = localStorage.getItem('gh_repo') || 'YOUR_REPO_NAME';
+      const branch = localStorage.getItem('gh_branch') || 'main';
+      return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}?t=${Date.now()}`;
+    }
+
+    async function fetchJSON(url) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (err) {
+        return null;
+      }
+    }
+
+    async function fetchAllData() {
+      const [stats, openSignals, closedSignals] = await Promise.all([
+        fetchJSON(getRawUrl('signals/stats.json')),
+        fetchJSON(getRawUrl('signals/open.json')),
+        fetchJSON(getRawUrl('signals/closed.json'))
+      ]);
+
+      if (stats) {
+        const pnlEl = document.getElementById('stat-pnl');
+        const pnlVal = stats.total_pnl_usdt || 0.0;
+        pnlEl.textContent = `${pnlVal >= 0 ? '+' : ''}$${pnlVal.toFixed(2)} USDT`;
+        pnlEl.className = `text-2xl font-bold mt-1 ${pnlVal >= 0 ? 'text-emerald-400' : 'text-rose-500'}`;
+        document.getElementById('stat-winrate').textContent = `${(stats.win_rate || 0).toFixed(1)}%`;
+        document.getElementById('stat-trades').innerHTML = `${stats.total_trades || 0} <span class="text-xs font-normal text-slate-400">(${stats.winning_trades || 0}W / ${stats.losing_trades || 0}L)</span>`;
+        document.getElementById('stat-lastrun').textContent = stats.last_run ? new Date(stats.last_run).toLocaleString() : 'N/A';
+      }
+
+      const openTbody = document.getElementById('open-signals-tbody');
+      if (openSignals && openSignals.length > 0) {
+        document.getElementById('open-count-badge').textContent = `${openSignals.length} Open`;
+        openTbody.innerHTML = openSignals.map(s => `
+          <tr class="hover:bg-slate-900/40 transition-colors">
+            <td class="py-3 px-3 font-medium text-white">${s.bot_name}</td>
+            <td class="py-3 px-3 font-semibold text-indigo-400">${s.symbol}</td>
+            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${s.side === 'BUY' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'}">${s.side}</span></td>
+            <td class="py-3 px-3">$${s.entry_price.toLocaleString()}</td>
+            <td class="py-3 px-3 text-emerald-400">$${s.take_profit.toLocaleString()}</td>
+            <td class="py-3 px-3 text-rose-400">$${s.stop_loss.toLocaleString()}</td>
+            <td class="py-3 px-3">$${s.position_size}</td>
+            <td class="py-3 px-3 text-slate-400">${new Date(s.entry_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+          </tr>
+        `).join('');
+      } else {
+        document.getElementById('open-count-badge').textContent = `0 Open`;
+        openTbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-500">No active positions. Scanning market...</td></tr>`;
+      }
+
+      const closedTbody = document.getElementById('closed-signals-tbody');
+      if (closedSignals && closedSignals.length > 0) {
+        document.getElementById('closed-count-badge').textContent = `${closedSignals.length} Closed`;
+        closedTbody.innerHTML = [...closedSignals].reverse().slice(0, 50).map(s => {
+          const isWin = (s.pnl_usdt || 0) >= 0;
+          return `
+          <tr class="hover:bg-slate-900/40 transition-colors">
+            <td class="py-3 px-3 font-medium text-white">${s.bot_name}</td>
+            <td class="py-3 px-3 font-semibold text-indigo-400">${s.symbol}</td>
+            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${s.side === 'BUY' ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'}">${s.side}</span></td>
+            <td class="py-3 px-3">$${s.entry_price.toLocaleString()}</td>
+            <td class="py-3 px-3">$${s.exit_price.toLocaleString()}</td>
+            <td class="py-3 px-3 font-semibold ${isWin ? 'text-emerald-400' : 'text-rose-400'}">${s.pnl_pct >= 0 ? '+' : ''}${s.pnl_pct}%</td>
+            <td class="py-3 px-3 font-semibold ${isWin ? 'text-emerald-400' : 'text-rose-400'}">${s.pnl_usdt >= 0 ? '+' : ''}$${s.pnl_usdt}</td>
+            <td class="py-3 px-3 text-slate-400">${s.exit_reason}</td>
+            <td class="py-3 px-3 text-slate-500">${new Date(s.exit_time).toLocaleDateString()} ${new Date(s.exit_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+          </tr>
+        `}).join('');
+      } else {
+        document.getElementById('closed-count-badge').textContent = `0 Closed`;
+        closedTbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-500">No completed trades yet.</td></tr>`;
+      }
+    }
+
+    fetchAllData();
+    setInterval(fetchAllData, 10000);
+  </script>
+</body>
+</html>
