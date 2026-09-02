@@ -24,5 +24,18 @@
     "quantity": 0.020865,
     "status": "OPEN",
     "entry_time": "2026-09-02T20:05:35.538479+00:00"
+  },
+  {
+    "id": "8ba7798b",
+    "bot_name": "MACD_Momentum",
+    "symbol": "BTC/USDT",
+    "side": "BUY",
+    "entry_price": 77449.02,
+    "take_profit": 78998.0004,
+    "stop_loss": 76287.2847,
+    "position_size": 50.0,
+    "quantity": 0.000646,
+    "status": "OPEN",
+    "entry_time": "2026-09-02T20:57:18.709161+00:00"
   }
 ]
