@@ -2,8 +2,10 @@ import os
 import sys
 import json
 import uuid
+import time
+import requests
 from datetime import datetime, timezone
-import ccxt
+
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -17,6 +19,15 @@ OPEN_SIGNALS_PATH = os.path.join(BASE_DIR, "signals", "open.json")
 CLOSED_SIGNALS_PATH = os.path.join(BASE_DIR, "signals", "closed.json")
 STATS_PATH = os.path.join(BASE_DIR, "signals", "stats.json")
 
+# --- Public Binance REST mirrors (no API key required for market data) ---
+# Order matters: tried top to bottom, first one that works wins.
+MIRRORS = [
+    "https://api1.binance.com/api/v3",
+    "https://api.binance.com/api/v3",
+    "https://data-api.binance.vision/api/v3",
+    "https://api.binance.me/api/v3",
+]
+
 
 def is_bot_active() -> bool:
     """Graceful exit if the master switch in bot_enabled.txt is 0."""
@@ -25,7 +36,7 @@ def is_bot_active() -> bool:
     try:
         with open(BOT_ENABLED_PATH, "r", encoding="utf-8") as f:
             status = f.read().strip()
-            return status == "1"
+        return status == "1"
     except Exception as e:
         print(f"[WARN] Failed reading switch status: {e}. Defaulting to active.")
         return True
@@ -47,22 +58,34 @@ def save_json(file_path: str, data):
         json.dump(data, f, indent=2)
 
 
-def init_exchange(settings: dict):
-    api_key = os.getenv("BINANCE_API_KEY", "")
-    secret_key = os.getenv("BINANCE_SECRET_KEY", "")
-    is_testnet = settings.get("testnet", True)
+def fetch_klines(symbol: str, interval: str, limit: int = 100) -> pd.DataFrame:
+    """
+    Fetch OHLCV candles from public Binance mainnet mirrors, trying each
+    mirror in order until one succeeds. Raises the last error if all fail.
+    symbol expected like 'BTC/USDT' (converted to 'BTCUSDT' for the API).
+    """
+    api_symbol = symbol.replace("/", "").upper()
+    params = {"symbol": api_symbol, "interval": interval, "limit": limit}
 
-    exchange = ccxt.binance({
-        "apiKey": api_key,
-        "secret": secret_key,
-        "enableRateLimit": True,
-        "options": {
-            "defaultType": "future" if is_testnet else "spot"
-        }
-    })
-    if is_testnet:
-        exchange.set_sandbox_mode(True)
-    return exchange
+    last_err = None
+    for base_url in MIRRORS:
+        try:
+            resp = requests.get(f"{base_url}/klines", params=params, timeout=10)
+            resp.raise_for_status()
+            raw = resp.json()
+            df = pd.DataFrame(raw, columns=[
+                "timestamp", "open", "high", "low", "close", "volume",
+                "close_time", "quote_asset_volume", "num_trades",
+                "taker_buy_base", "taker_buy_quote", "ignore"
+            ])
+            for col in ["open", "high", "low", "close", "volume"]:
+                df[col] = df[col].astype(float)
+            return df[["timestamp", "open", "high", "low", "close", "volume"]]
+        except Exception as e:
+            last_err = e
+            continue
+
+    raise RuntimeError(f"All mirrors failed for {symbol}: {last_err}")
 
 
 # --- Strategy Indicators ---
@@ -126,7 +149,6 @@ def evaluate_strategy(bot_name: str, df: pd.DataFrame, cfg: dict) -> str:
         recent_low = low.iloc[-lookback - 1:-1].min()
         avg_vol = volume.iloc[-lookback - 1:-1].mean()
         vol_mult = cfg.get("volume_multiplier", 1.8)
-
         if close.iloc[i] > recent_high and volume.iloc[i] > (avg_vol * vol_mult):
             return "BUY"
         elif close.iloc[i] < recent_low and volume.iloc[i] > (avg_vol * vol_mult):
@@ -138,7 +160,6 @@ def evaluate_strategy(bot_name: str, df: pd.DataFrame, cfg: dict) -> str:
         std = close.rolling(period).std()
         z_score = (close - sma) / (std + 1e-10)
         threshold = cfg.get("entry_threshold", 2.0)
-
         if z_score.iloc[i] < -threshold:
             return "BUY"
         elif z_score.iloc[i] > threshold:
@@ -160,7 +181,6 @@ def run():
         "win_rate": 0.0, "total_pnl_usdt": 0.0, "last_run": None, "bots": {}
     })
 
-    exchange = init_exchange(settings)
     symbols = settings.get("symbols", ["BTC/USDT", "ETH/USDT", "SOL/USDT"])
     timeframe = settings.get("timeframe", "15m")
     limit = settings.get("ohlcv_limit", 100)
@@ -171,11 +191,10 @@ def run():
     current_prices = {}
     market_data = {}
 
-    # 1. Fetch OHLCV Market Data
+    # 1. Fetch OHLCV Market Data (real mainnet data via public mirrors)
     for symbol in symbols:
         try:
-            ohlcv = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
-            df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            df = fetch_klines(symbol, timeframe, limit)
             market_data[symbol] = df
             current_prices[symbol] = float(df['close'].iloc[-1])
         except Exception as e:
@@ -226,7 +245,6 @@ def run():
             trade["status"] = "CLOSED"
             closed_signals.append(trade)
 
-            # Update stats
             stats["total_trades"] += 1
             if pnl_usdt > 0:
                 stats["winning_trades"] += 1
@@ -261,7 +279,6 @@ def run():
         for symbol in symbols:
             if symbol not in market_data:
                 continue
-
             if any(t["bot_name"] == bot_name and t["symbol"] == symbol for t in open_signals):
                 continue
 
@@ -304,6 +321,7 @@ def run():
     save_json(OPEN_SIGNALS_PATH, open_signals)
     save_json(CLOSED_SIGNALS_PATH, closed_signals)
     save_json(STATS_PATH, stats)
+
     print(f"[OK] Cycle complete at {now_iso}. Open: {len(open_signals)}, Closed: {len(closed_signals)}")
 
 
