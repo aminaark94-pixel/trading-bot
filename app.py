@@ -59,11 +59,12 @@ DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "").strip()
 # datacenters) get rate-limited/blocked on api.binance.com alone, so we
 # try each mirror in order until one responds. ---
 BINANCE_MIRRORS = [
+    "https://data-api.binance.vision/api/v3",
     "https://api1.binance.com/api/v3",
     "https://api.binance.com/api/v3",
-    "https://data-api.binance.vision/api/v3",
     "https://api.binance.me/api/v3",
 ]
+BINANCE_TIMEOUT = 6
 
 GEMINI_KEYS = [k.strip() for k in RAW_GEMINI_KEYS.split(",") if k.strip()]
 GROQ_KEYS = [k.strip() for k in RAW_GROQ_KEYS.split(",") if k.strip()]
@@ -557,7 +558,7 @@ def fetch_klines(symbol, interval, limit=210):
         try:
             r = requests.get(
                 f"{base_url}/klines?symbol={symbol}&interval={interval}&limit={limit}",
-                timeout=10
+                timeout=BINANCE_TIMEOUT
             )
             if r.status_code == 200:
                 return r.json()
@@ -632,7 +633,7 @@ def get_orderbook_summary(symbol):
     data = None
     for base_url in BINANCE_MIRRORS:
         try:
-            r = requests.get(f"{base_url}/depth?symbol={symbol}&limit=20", timeout=5)
+            r = requests.get(f"{base_url}/depth?symbol={symbol}&limit=20", timeout=BINANCE_TIMEOUT)
             if r.status_code == 200:
                 data = r.json()
                 break
@@ -1203,7 +1204,7 @@ def run_bot_engine(bot_cfg):
 def get_live_price(symbol):
     for base_url in BINANCE_MIRRORS:
         try:
-            r = requests.get(f"{base_url}/ticker/price?symbol={symbol}", timeout=5)
+            r = requests.get(f"{base_url}/ticker/price?symbol={symbol}", timeout=BINANCE_TIMEOUT)
             if r.status_code == 200:
                 return float(r.json()["price"])
         except Exception:
