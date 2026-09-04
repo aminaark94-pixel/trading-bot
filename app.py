@@ -1268,9 +1268,9 @@ def run_position_monitor():
 @app.route('/')
 def home():
     import os
-    if os.path.exists(os.path.join('templates', 'dashboard.html')):
+    if os.path.exists('dashboard.html'):
         return render_template('dashboard.html')
-    return "templates/dashboard.html file missing! Make sure dashboard.html is inside a 'templates' folder next to app.py.", 404
+    return "dashboard.html file missing! It must sit directly next to app.py (repo root), not inside a 'templates' folder.", 404
 
 
 @app.route('/signal', methods=['POST'])
