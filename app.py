@@ -55,6 +55,16 @@ AI_ENABLED = os.getenv("AI_ENABLED", "false").strip().lower() == "true"
 # --- Discord webhook (optional) — if set, every new signal is posted there ---
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "").strip()
 
+# --- Public Binance REST mirrors — some cloud regions (incl. Render's US
+# datacenters) get rate-limited/blocked on api.binance.com alone, so we
+# try each mirror in order until one responds. ---
+BINANCE_MIRRORS = [
+    "https://api1.binance.com/api/v3",
+    "https://api.binance.com/api/v3",
+    "https://data-api.binance.vision/api/v3",
+    "https://api.binance.me/api/v3",
+]
+
 GEMINI_KEYS = [k.strip() for k in RAW_GEMINI_KEYS.split(",") if k.strip()]
 GROQ_KEYS = [k.strip() for k in RAW_GROQ_KEYS.split(",") if k.strip()]
 MISTRAL_KEYS = [k.strip() for k in RAW_MISTRAL_KEYS.split(",") if k.strip()]
@@ -543,16 +553,17 @@ def _rolling_rsi(closes, period=14):
 # NEW: MULTI-TIMEFRAME TREND FILTER (1h + 4h EMA50 / EMA200)
 # =====================================================================
 def fetch_klines(symbol, interval, limit=210):
-    try:
-        r = requests.get(
-            f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit={limit}",
-            timeout=10
-        )
-        if r.status_code != 200:
-            return None
-        return r.json()
-    except Exception:
-        return None
+    for base_url in BINANCE_MIRRORS:
+        try:
+            r = requests.get(
+                f"{base_url}/klines?symbol={symbol}&interval={interval}&limit={limit}",
+                timeout=10
+            )
+            if r.status_code == 200:
+                return r.json()
+        except Exception:
+            continue
+    return None
 
 
 def get_higher_tf_trend(symbol):
@@ -618,9 +629,18 @@ def trend_allows_signal(bot_cfg, direction, trend_bias):
 # ORDER BOOK CONTEXT (unchanged)
 # =====================================================================
 def get_orderbook_summary(symbol):
+    data = None
+    for base_url in BINANCE_MIRRORS:
+        try:
+            r = requests.get(f"{base_url}/depth?symbol={symbol}&limit=20", timeout=5)
+            if r.status_code == 200:
+                data = r.json()
+                break
+        except Exception:
+            continue
+    if data is None:
+        return "Order Book: unavailable."
     try:
-        r = requests.get(f"https://api.binance.com/api/v3/depth?symbol={symbol}&limit=20", timeout=5)
-        data = r.json()
         bids = data.get("bids", [])
         asks = data.get("asks", [])
         bid_vol = sum(float(q) for _, q in bids)
@@ -1181,12 +1201,13 @@ def run_bot_engine(bot_cfg):
 #  a later part.)
 # =====================================================================
 def get_live_price(symbol):
-    try:
-        r = requests.get(f"https://api.binance.com/api/v3/ticker/price?symbol={symbol}", timeout=5)
-        if r.status_code == 200:
-            return float(r.json()["price"])
-    except Exception:
-        pass
+    for base_url in BINANCE_MIRRORS:
+        try:
+            r = requests.get(f"{base_url}/ticker/price?symbol={symbol}", timeout=5)
+            if r.status_code == 200:
+                return float(r.json()["price"])
+        except Exception:
+            continue
     return None
 
 
@@ -1247,9 +1268,9 @@ def run_position_monitor():
 @app.route('/')
 def home():
     import os
-    if os.path.exists('dashboard.html'):
+    if os.path.exists(os.path.join('templates', 'dashboard.html')):
         return render_template('dashboard.html')
-    return "dashboard.html file missing in directory!", 404
+    return "templates/dashboard.html file missing! Make sure dashboard.html is inside a 'templates' folder next to app.py.", 404
 
 
 @app.route('/signal', methods=['POST'])
