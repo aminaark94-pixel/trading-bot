@@ -567,6 +567,35 @@ def fetch_klines(symbol, interval, limit=210):
     return None
 
 
+# =====================================================================
+# SHARED KLINE CACHE — all 5 bots scan the same coin list, so without
+# this they'd each independently re-fetch identical 15m/1h/4h candles
+# for every symbol (5x the network calls and CPU work for no reason).
+# This cache lets whichever bot asks first do the real fetch; the
+# other 4 reuse that result for a short TTL window.
+# =====================================================================
+_kline_cache = {}
+_kline_cache_lock = threading.Lock()
+KLINE_CACHE_TTL = {"15m": 45, "1h": 180, "4h": 300}  # seconds
+
+
+def cached_fetch_klines(symbol, interval, limit=210):
+    key = (symbol, interval, limit)
+    ttl = KLINE_CACHE_TTL.get(interval, 60)
+    now = time.time()
+
+    with _kline_cache_lock:
+        entry = _kline_cache.get(key)
+        if entry and (now - entry[0]) < ttl:
+            return entry[1]
+
+    data = fetch_klines(symbol, interval, limit)
+
+    with _kline_cache_lock:
+        _kline_cache[key] = (now, data)
+    return data
+
+
 def get_higher_tf_trend(symbol):
     """
     Returns dict: {
@@ -577,7 +606,7 @@ def get_higher_tf_trend(symbol):
     """
     tf_bias = {}
     for tf in ("1h", "4h"):
-        kl = fetch_klines(symbol, tf, limit=210)
+        kl = cached_fetch_klines(symbol, tf, limit=210)
         if not kl or len(kl) < 200:
             tf_bias[tf] = "NEUTRAL"
             continue
@@ -1098,7 +1127,7 @@ def run_bot_engine(bot_cfg):
             print(f"[{time_str}] 🔍 [{bot_cfg['id'].upper()}] Scanning {symbol}...")
 
             try:
-                kl_15m = fetch_klines(symbol, "15m", limit=100)
+                kl_15m = cached_fetch_klines(symbol, "15m", limit=100)
                 if not kl_15m:
                     print(f"❌ [{bot_cfg['id'].upper()}][BINANCE ERROR] {symbol}")
                     continue
