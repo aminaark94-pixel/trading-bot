@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "key": "bot4:SOLUSDT",
+    "bot_id": "bot4",
+    "bot_name": "Scalper Precision",
+    "symbol": "SOLUSDT",
+    "direction": "LONG",
+    "entry": 101.52,
+    "tp": 103.022316,
+    "sl": 100.268069,
+    "score": 72,
+    "provider": "Technical",
+    "reason": "MACD line just crossed its signal line (fast momentum flip).",
+    "status": "waiting_entry",
+    "timestamp": "2026-09-04 20:51:19",
+    "copy_payload": "Coin: SOLUSDT\nSide: LONG\nTime: 2026-09-04 20:51:19\nEntry: 101.52\nTP: 103.022316\nSL: 100.268069"
+  },
+  {
+    "key": "bot4:BTCUSDT",
+    "bot_id": "bot4",
+    "bot_name": "Scalper Precision",
+    "symbol": "BTCUSDT",
+    "direction": "LONG",
+    "entry": 79463.92,
+    "tp": 80312.205244,
+    "sl": 78757.01563,
+    "score": 72,
+    "provider": "Technical",
+    "reason": "MACD line just crossed its signal line (fast momentum flip).",
+    "status": "waiting_entry",
+    "timestamp": "2026-09-04 20:51:15",
+    "copy_payload": "Coin: BTCUSDT\nSide: LONG\nTime: 2026-09-04 20:51:15\nEntry: 79463.92\nTP: 80312.205244\nSL: 78757.01563"
+  }
+]
