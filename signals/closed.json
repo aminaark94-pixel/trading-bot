@@ -36,5 +36,43 @@
     "result": "SL_HIT",
     "close_price": 2448.4,
     "closed_at": "2026-09-05 09:48:47"
+  },
+  {
+    "key": "bot5:BTCUSDT",
+    "bot_id": "bot5",
+    "bot_name": "Conservative Swing",
+    "symbol": "BTCUSDT",
+    "direction": "LONG",
+    "entry": 79816.25,
+    "tp": 80683.787631,
+    "sl": 79482.58168,
+    "score": 87,
+    "provider": "Technical",
+    "reason": "Trend + EMA + MACD + RSI all confluent \u2014 high-conviction swing setup.",
+    "status": "waiting_entry",
+    "timestamp": "2026-09-05 01:06:40",
+    "copy_payload": "Coin: BTCUSDT\nSide: LONG\nTime: 2026-09-05 01:06:40\nEntry: 79816.25\nTP: 80683.787631\nSL: 79482.58168",
+    "result": "SL_HIT",
+    "close_price": 79469.58,
+    "closed_at": "2026-09-05 10:05:47"
+  },
+  {
+    "key": "bot1:BTCUSDT",
+    "bot_id": "bot1",
+    "bot_name": "Trend Rider",
+    "symbol": "BTCUSDT",
+    "direction": "LONG",
+    "entry": 79816.25,
+    "tp": 80416.852976,
+    "sl": 79482.58168,
+    "score": 80,
+    "provider": "Technical",
+    "reason": "Trend UP confirmed by EMA9/21 + MACD alignment (RSI 52.65).",
+    "status": "waiting_entry",
+    "timestamp": "2026-09-05 01:06:36",
+    "copy_payload": "Coin: BTCUSDT\nSide: LONG\nTime: 2026-09-05 01:06:36\nEntry: 79816.25\nTP: 80416.852976\nSL: 79482.58168",
+    "result": "SL_HIT",
+    "close_price": 79469.59,
+    "closed_at": "2026-09-05 10:05:47"
   }
 ]
