@@ -1,6 +1,22 @@
 {
   "bot1": [
     {
+      "key": "bot1:ETHUSDT",
+      "bot_id": "bot1",
+      "bot_name": "Trend Rider",
+      "symbol": "ETHUSDT",
+      "direction": "LONG",
+      "entry": 2454.54,
+      "tp": 2461.99301,
+      "sl": 2450.399439,
+      "score": 80,
+      "provider": "Technical",
+      "reason": "Trend UP confirmed by EMA9/21 + MACD alignment (RSI 56.37).",
+      "status": "waiting_entry",
+      "timestamp": "2026-09-05 12:05:42",
+      "copy_payload": "Coin: ETHUSDT\nSide: LONG\nTime: 2026-09-05 12:05:42\nEntry: 2454.54\nTP: 2461.99301\nSL: 2450.399439"
+    },
+    {
       "key": "bot1:BTCUSDT",
       "bot_id": "bot1",
       "bot_name": "Trend Rider",
@@ -70,6 +86,22 @@
     }
   ],
   "bot5": [
+    {
+      "key": "bot5:ETHUSDT",
+      "bot_id": "bot5",
+      "bot_name": "Conservative Swing",
+      "symbol": "ETHUSDT",
+      "direction": "LONG",
+      "entry": 2454.54,
+      "tp": 2465.305459,
+      "sl": 2450.399439,
+      "score": 87,
+      "provider": "Technical",
+      "reason": "Trend + EMA + MACD + RSI all confluent \u2014 high-conviction swing setup.",
+      "status": "waiting_entry",
+      "timestamp": "2026-09-05 12:05:46",
+      "copy_payload": "Coin: ETHUSDT\nSide: LONG\nTime: 2026-09-05 12:05:46\nEntry: 2454.54\nTP: 2465.305459\nSL: 2450.399439"
+    },
     {
       "key": "bot5:BTCUSDT",
       "bot_id": "bot5",
