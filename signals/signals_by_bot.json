@@ -40,15 +40,15 @@
       "bot_name": "Reversal Hunter",
       "symbol": "ETHUSDT",
       "direction": "SHORT",
-      "entry": 2467.07,
-      "tp": 2457.760736,
-      "sl": 2473.719475,
-      "score": 74,
+      "entry": 2476.4,
+      "tp": 2464.598993,
+      "sl": 2484.829292,
+      "score": 85,
       "provider": "Technical",
-      "reason": "RSI 71.87 extreme + price at Bollinger Band edge.",
+      "reason": "RSI 80.98 extreme + price at Bollinger Band edge.",
       "status": "waiting_entry",
-      "timestamp": "2026-09-05 21:36:44",
-      "copy_payload": "Coin: ETHUSDT\nSide: SHORT\nTime: 2026-09-05 21:36:44\nEntry: 2467.07\nTP: 2457.760736\nSL: 2473.719475"
+      "timestamp": "2026-09-05 22:06:05",
+      "copy_payload": "Coin: ETHUSDT\nSide: SHORT\nTime: 2026-09-05 22:06:05\nEntry: 2476.4\nTP: 2464.598993\nSL: 2484.829292"
     },
     {
       "key": "bot2:BTCUSDT",
@@ -151,22 +151,5 @@
       "copy_payload": "Coin: BTCUSDT\nSide: LONG\nTime: 2026-09-04 20:51:15\nEntry: 79463.92\nTP: 80312.205244\nSL: 78757.01563"
     }
   ],
-  "bot5": [
-    {
-      "key": "bot5:BTCUSDT",
-      "bot_id": "bot5",
-      "bot_name": "Conservative Swing",
-      "symbol": "BTCUSDT",
-      "direction": "LONG",
-      "entry": 79693.46,
-      "tp": 80005.944684,
-      "sl": 79573.273583,
-      "score": 87,
-      "provider": "Technical",
-      "reason": "Trend + EMA + MACD + RSI all confluent \u2014 high-conviction swing setup.",
-      "status": "waiting_entry",
-      "timestamp": "2026-09-05 11:41:18",
-      "copy_payload": "Coin: BTCUSDT\nSide: LONG\nTime: 2026-09-05 11:41:18\nEntry: 79693.46\nTP: 80005.944684\nSL: 79573.273583"
-    }
-  ]
+  "bot5": []
 }

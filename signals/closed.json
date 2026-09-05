@@ -169,5 +169,43 @@
     "result": "TP_HIT",
     "close_price": 79943.99,
     "closed_at": "2026-09-05 21:36:32"
+  },
+  {
+    "key": "bot2:ETHUSDT",
+    "bot_id": "bot2",
+    "bot_name": "Reversal Hunter",
+    "symbol": "ETHUSDT",
+    "direction": "SHORT",
+    "entry": 2467.07,
+    "tp": 2457.760736,
+    "sl": 2473.719475,
+    "score": 74,
+    "provider": "Technical",
+    "reason": "RSI 71.87 extreme + price at Bollinger Band edge.",
+    "status": "waiting_entry",
+    "timestamp": "2026-09-05 21:36:44",
+    "copy_payload": "Coin: ETHUSDT\nSide: SHORT\nTime: 2026-09-05 21:36:44\nEntry: 2467.07\nTP: 2457.760736\nSL: 2473.719475",
+    "result": "SL_HIT",
+    "close_price": 2476.41,
+    "closed_at": "2026-09-05 22:05:56"
+  },
+  {
+    "key": "bot5:BTCUSDT",
+    "bot_id": "bot5",
+    "bot_name": "Conservative Swing",
+    "symbol": "BTCUSDT",
+    "direction": "LONG",
+    "entry": 79693.46,
+    "tp": 80005.944684,
+    "sl": 79573.273583,
+    "score": 87,
+    "provider": "Technical",
+    "reason": "Trend + EMA + MACD + RSI all confluent \u2014 high-conviction swing setup.",
+    "status": "waiting_entry",
+    "timestamp": "2026-09-05 11:41:18",
+    "copy_payload": "Coin: BTCUSDT\nSide: LONG\nTime: 2026-09-05 11:41:18\nEntry: 79693.46\nTP: 80005.944684\nSL: 79573.273583",
+    "result": "TP_HIT",
+    "close_price": 80041.09,
+    "closed_at": "2026-09-05 22:05:56"
   }
 ]
