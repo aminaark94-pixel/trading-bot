@@ -1,5 +1,22 @@
 {
-  "bot1": [],
+  "bot1": [
+    {
+      "key": "bot1:BTCUSDT",
+      "bot_id": "bot1",
+      "bot_name": "Trend Rider",
+      "symbol": "BTCUSDT",
+      "direction": "LONG",
+      "entry": 79693.46,
+      "tp": 79909.795551,
+      "sl": 79573.273583,
+      "score": 80,
+      "provider": "Technical",
+      "reason": "Trend UP confirmed by EMA9/21 + MACD alignment (RSI 57.26).",
+      "status": "waiting_entry",
+      "timestamp": "2026-09-05 11:41:14",
+      "copy_payload": "Coin: BTCUSDT\nSide: LONG\nTime: 2026-09-05 11:41:14\nEntry: 79693.46\nTP: 79909.795551\nSL: 79573.273583"
+    }
+  ],
   "bot2": [],
   "bot3": [],
   "bot4": [
@@ -52,5 +69,22 @@
       "copy_payload": "Coin: BTCUSDT\nSide: LONG\nTime: 2026-09-04 20:51:15\nEntry: 79463.92\nTP: 80312.205244\nSL: 78757.01563"
     }
   ],
-  "bot5": []
+  "bot5": [
+    {
+      "key": "bot5:BTCUSDT",
+      "bot_id": "bot5",
+      "bot_name": "Conservative Swing",
+      "symbol": "BTCUSDT",
+      "direction": "LONG",
+      "entry": 79693.46,
+      "tp": 80005.944684,
+      "sl": 79573.273583,
+      "score": 87,
+      "provider": "Technical",
+      "reason": "Trend + EMA + MACD + RSI all confluent \u2014 high-conviction swing setup.",
+      "status": "waiting_entry",
+      "timestamp": "2026-09-05 11:41:18",
+      "copy_payload": "Coin: BTCUSDT\nSide: LONG\nTime: 2026-09-05 11:41:18\nEntry: 79693.46\nTP: 80005.944684\nSL: 79573.273583"
+    }
+  ]
 }
