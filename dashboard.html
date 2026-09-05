@@ -467,7 +467,7 @@
 
     // ====== LIVE DATA SOURCE (app.py — merged server + 5-bot engine) ======
     // Absolute URLs used so this works whether the HTML is opened directly (file://) or served by Flask.
-    const API_BASE = 'http://127.0.0.1:5055';
+    const API_BASE = '';   // relative — works on localhost AND on the deployed Render URL
     const SIGNALS_BY_BOT_ENDPOINT = `${API_BASE}/signals_by_bot`;
     const BOTS_ENDPOINT = `${API_BASE}/bots`;
     const STATS_ENDPOINT = `${API_BASE}/stats`;
