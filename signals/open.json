@@ -1,5 +1,37 @@
 [
   {
+    "key": "bot5:ETHUSDT",
+    "bot_id": "bot5",
+    "bot_name": "Conservative Swing",
+    "symbol": "ETHUSDT",
+    "direction": "LONG",
+    "entry": 2454.47,
+    "tp": 2469.749876,
+    "sl": 2448.593124,
+    "score": 87,
+    "provider": "Technical",
+    "reason": "Trend + EMA + MACD + RSI all confluent \u2014 high-conviction swing setup.",
+    "status": "waiting_entry",
+    "timestamp": "2026-09-05 06:35:33",
+    "copy_payload": "Coin: ETHUSDT\nSide: LONG\nTime: 2026-09-05 06:35:33\nEntry: 2454.47\nTP: 2469.749876\nSL: 2448.593124"
+  },
+  {
+    "key": "bot1:ETHUSDT",
+    "bot_id": "bot1",
+    "bot_name": "Trend Rider",
+    "symbol": "ETHUSDT",
+    "direction": "LONG",
+    "entry": 2454.47,
+    "tp": 2465.048376,
+    "sl": 2448.593124,
+    "score": 80,
+    "provider": "Technical",
+    "reason": "Trend UP confirmed by EMA9/21 + MACD alignment (RSI 49.74).",
+    "status": "waiting_entry",
+    "timestamp": "2026-09-05 06:35:29",
+    "copy_payload": "Coin: ETHUSDT\nSide: LONG\nTime: 2026-09-05 06:35:29\nEntry: 2454.47\nTP: 2465.048376\nSL: 2448.593124"
+  },
+  {
     "key": "bot5:BTCUSDT",
     "bot_id": "bot5",
     "bot_name": "Conservative Swing",
