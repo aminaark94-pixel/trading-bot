@@ -4,8 +4,8 @@
       "bot_id": "bot1",
       "bot_name": "Trend Rider",
       "wins": 0,
-      "losses": 0,
-      "total": 0,
+      "losses": 2,
+      "total": 2,
       "win_rate": 0.0
     },
     {
@@ -36,13 +36,20 @@
       "bot_id": "bot5",
       "bot_name": "Conservative Swing",
       "wins": 0,
-      "losses": 0,
-      "total": 0,
+      "losses": 2,
+      "total": 2,
       "win_rate": 0.0
     }
   ],
-  "winner": null,
-  "last_run": "2026-09-04T14:58:41.460344+00:00",
+  "winner": {
+    "bot_id": "bot1",
+    "bot_name": "Trend Rider",
+    "wins": 0,
+    "losses": 2,
+    "total": 2,
+    "win_rate": 0.0
+  },
+  "last_run": "2026-09-05T05:35:42.880367+00:00",
   "ai_enabled": false,
   "engine": "github-actions"
 }
