@@ -880,11 +880,17 @@
       return val.toFixed(4);
     }
 
-    // Turns "2026-08-24 10:09:54" (server format) into "3m ago" / "2h ago" etc,
+    // Turns "2026-08-24 10:09:54" (server format, UTC) into "3m ago" / "2h ago" etc,
     // so it's obvious at a glance whether a signal/card is fresh or stale.
     function getRelativeAge(timestampStr) {
       if (!timestampStr || typeof timestampStr !== 'string') return '';
-      const isoish = timestampStr.includes('T') ? timestampStr : timestampStr.replace(' ', 'T');
+      let isoish = timestampStr.includes('T') ? timestampStr : timestampStr.replace(' ', 'T');
+      // Server timestamps are naive UTC (no timezone marker) — without an explicit
+      // 'Z', the browser would parse this as LOCAL time and the diff would be off
+      // by exactly your UTC offset (e.g. 5 hours for Pakistan).
+      if (!isoish.endsWith('Z') && !/[+-]\d{2}:\d{2}$/.test(isoish)) {
+        isoish += 'Z';
+      }
       const t = new Date(isoish);
       if (isNaN(t.getTime())) return '';
       const diffMs = Date.now() - t.getTime();
