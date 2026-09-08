@@ -83,9 +83,15 @@ def _next_key(name, pool):
     return key
 
 
+# NOTE: MATICUSDT was replaced with POLUSDT - Binance delisted MATICUSDT after
+# Polygon's MATIC -> POL token migration/rebrand. Keeping the old symbol here
+# would make every bot silently fail on that entry (no klines, no live price),
+# and any signal generated for it before the rebrand could never close (no
+# live price to hit TP/SL against) - see the monitor age-expiry fix in
+# bot_engine.py for the safety net on that second half of the problem.
 TOP_50_COINS = [
     "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "DOGEUSDT", "ADAUSDT", "AVAXUSDT",
-    "LINKUSDT", "SUIUSDT", "DOTUSDT", "NEARUSDT", "APTUSDT", "LTCUSDT", "BCHUSDT", "MATICUSDT",
+    "LINKUSDT", "SUIUSDT", "DOTUSDT", "NEARUSDT", "APTUSDT", "LTCUSDT", "BCHUSDT", "POLUSDT",
     "UNIUSDT", "ICPUSDT", "FETUSDT", "RENDERUSDT", "INJUSDT", "TIAUSDT", "STXUSDT", "FILUSDT"
 ]
 
@@ -394,6 +400,16 @@ CORS(app)  # Blockage fix karne ke liye full CORS enable kar diya hai
 # PKT TIME / DYNAMIC RISK SESSION
 # =====================================================================
 PKT = timezone(timedelta(hours=5))  # Pakistan Standard Time, no DST
+
+
+def karachi_now_str():
+    """Every persisted timestamp in this app goes through this function so
+    they're ALWAYS true Karachi wall-clock time, regardless of what
+    timezone the underlying machine/container/GitHub Actions runner is
+    set to. Previously this used naive datetime.now() (whatever the host's
+    local timezone happened to be), which is why card timestamps could
+    look 'wrong' depending on where app.py/bot_engine.py actually ran."""
+    return datetime.now(PKT).strftime('%Y-%m-%d %H:%M:%S')
 
 
 def get_session_risk_multiplier():
@@ -1091,7 +1107,7 @@ TECHNICAL_EVALUATORS = {
 # =====================================================================
 def submit_signal(bot_cfg, symbol, direction, entry, tp, sl, score, provider, reason):
     key = f"{bot_cfg['id']}:{symbol}"
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    timestamp = karachi_now_str()
     copy_payload = f"Coin: {symbol}\nSide: {direction.upper()}\nTime: {timestamp}\nEntry: {entry}\nTP: {tp}\nSL: {sl}"
     with _state_lock:
         signals_store[key] = {
@@ -1123,7 +1139,7 @@ def run_bot_engine(bot_cfg):
     while True:
         coins = TOP_50_COINS[coin_offset:] + TOP_50_COINS[:coin_offset]
         for symbol in coins:
-            time_str = datetime.now().strftime('%H:%M:%S')
+            time_str = datetime.now(PKT).strftime('%H:%M:%S')
             print(f"[{time_str}] 🔍 [{bot_cfg['id'].upper()}] Scanning {symbol}...")
 
             try:
@@ -1276,7 +1292,7 @@ def run_position_monitor():
                         if closed:
                             closed["result"] = hit
                             closed["close_price"] = price
-                            closed["closed_at"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                            closed["closed_at"] = karachi_now_str()
                             closed_store.append(closed)
                             stats = bot_stats.setdefault(closed["bot_id"], {"wins": 0, "losses": 0, "total": 0})
                             stats["total"] += 1
