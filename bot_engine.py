@@ -227,9 +227,33 @@ def scan_bot(bot_cfg, symbols):
     print(f"[{bot_cfg['id'].upper()}] scan cycle done")
 
 
+def _parse_signal_timestamp(ts):
+    """Signal timestamps are now saved as Karachi-tz ISO strings (see app.py
+    karachi_now_str()), but older persisted signals may still be naive
+    '%Y-%m-%d %H:%M:%S' strings assumed-Karachi. Handle both so nothing new
+    breaks on old data."""
+    if not ts:
+        return None
+    try:
+        dt = datetime.fromisoformat(ts)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=engine.PKT)
+        return dt
+    except Exception:
+        pass
+    try:
+        return datetime.strptime(ts, "%Y-%m-%d %H:%M:%S").replace(tzinfo=engine.PKT)
+    except Exception:
+        return None
+
+
 def monitor_once():
-    """Open signals ko live price se check karo: TP/SL hit -> closed store + stats update."""
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    """Open signals ko live price se check karo: TP/SL hit -> closed store + stats update.
+    IMPORTANT: age-based expiry runs even when the live price can't be fetched
+    (e.g. a delisted/renamed symbol like the old MATICUSDT) - otherwise a dead
+    symbol's signal would stay 'open' forever since it can never hit TP/SL."""
+    now_dt = datetime.now(engine.PKT)
+    now_str = now_dt.strftime("%Y-%m-%d %H:%M:%S")
     with engine._state_lock:
         keys = list(engine.signals_store.keys())
 
@@ -240,28 +264,28 @@ def monitor_once():
             continue
 
         price = engine.get_live_price(sig["symbol"])
-        if price is None:
-            continue
 
         hit = None
-        if sig["direction"] == "LONG":
-            if price >= sig["tp"]:
-                hit = "TP_HIT"
-            elif price <= sig["sl"]:
-                hit = "SL_HIT"
+        if price is not None:
+            if sig["direction"] == "LONG":
+                if price >= sig["tp"]:
+                    hit = "TP_HIT"
+                elif price <= sig["sl"]:
+                    hit = "SL_HIT"
+            else:
+                if price <= sig["tp"]:
+                    hit = "TP_HIT"
+                elif price >= sig["sl"]:
+                    hit = "SL_HIT"
         else:
-            if price <= sig["tp"]:
-                hit = "TP_HIT"
-            elif price >= sig["sl"]:
-                hit = "SL_HIT"
+            print(f"[MONITOR] {sig['symbol']} price unavailable (delisted/renamed on Binance?) - age-check only")
 
         if hit is None:
-            try:
-                age_h = (datetime.now() - datetime.strptime(sig.get("timestamp", ""), "%Y-%m-%d %H:%M:%S")).total_seconds() / 3600.0
+            sig_dt = _parse_signal_timestamp(sig.get("timestamp", ""))
+            if sig_dt is not None:
+                age_h = (now_dt - sig_dt).total_seconds() / 3600.0
                 if age_h >= SIGNAL_MAX_AGE_HOURS:
                     hit = "EXPIRED"
-            except Exception:
-                pass
 
         if hit:
             closed = None
@@ -269,7 +293,7 @@ def monitor_once():
                 closed = engine.signals_store.pop(key, None)
                 if closed:
                     closed["result"] = hit
-                    closed["close_price"] = price
+                    closed["close_price"] = price if price is not None else closed.get("entry")
                     closed["closed_at"] = now_str
                     engine.closed_store.append(closed)
                     if hit in ("TP_HIT", "SL_HIT"):
@@ -280,13 +304,15 @@ def monitor_once():
                         else:
                             stats["losses"] += 1
             if closed:
-                print(f"CLOSED [{closed['bot_id']}] {closed['symbol']} -> {hit} @ {price}")
+                print(f"CLOSED [{closed['bot_id']}] {closed['symbol']} -> {hit} @ {closed.get('close_price')}")
                 if hit in ("TP_HIT", "SL_HIT"):
                     bot_cfg = engine.BOT_BY_ID.get(closed["bot_id"], {"id": closed["bot_id"], "name": closed.get("bot_name", closed["bot_id"])})
                     try:
-                        engine.post_discord_signal(bot_cfg, closed["symbol"], closed["direction"], closed.get("entry", 0), closed.get("tp", 0), closed.get("sl", 0), closed.get("score", 80), "MONITOR", f"Position closed: {hit} @ {price}")
+                        engine.post_discord_signal(bot_cfg, closed["symbol"], closed["direction"], closed.get("entry", 0), closed.get("tp", 0), closed.get("sl", 0), closed.get("score", 80), "MONITOR", f"Position closed: {hit} @ {closed.get('close_price')}")
                     except Exception as e:
                         print(f"[DISCORD CLOSE ALERT FAILED] {e}")
+                elif hit == "EXPIRED":
+                    print(f"[EXPIRED] {closed['symbol']} - no live price for {SIGNAL_MAX_AGE_HOURS}h+, force-closed without counting as win/loss")
 
 
 def persist_state():
